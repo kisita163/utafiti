@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="btn" parent="android:Widget.Holo.Light.Button">
+        <item name="android:minHeight">1dp</item>
+        <item name="android:minWidth">1dp</item>
+        <item name="android:foreground">?android:selectableItemBackground</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:colorBackground">@color/main_white</item>
+    </style>
+
+    <style name="simpleTextLabel">
+        <item name="android:layout_margin">@dimen/pad_10dp</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textAppearance">?attr/textAppearanceListItem</item>
+    </style>
+
+    <style name="simpleTextValue">
+        <item name="android:layout_margin">@dimen/pad_10dp</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textAppearance">?attr/textAppearanceListItem</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:inputType">text</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/colorAccent</item>
+    </style>
+</resources>

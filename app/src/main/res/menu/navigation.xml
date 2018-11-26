@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/ic_home_black_24dp"
+        android:title="home" />
+
+    <item
+        android:id="@+id/navigation_previous"
+        android:icon="@drawable/ic_skip_previous_black_24dp"
+        android:title="précédent" />
+
+    <item
+        android:id="@+id/navigation_next"
+        android:icon="@drawable/ic_skip_next_black_24dp"
+        android:title="suivant" />
+
+    <item
+        android:id="@+id/navigation_publish"
+        android:icon="@drawable/ic_send_black_24dp"
+        android:title="publier" />
+</menu>
