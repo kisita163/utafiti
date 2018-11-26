@@ -117,7 +117,7 @@ public class LoginActivity extends AppCompatActivity  {
             cancel = true;
         }
 
-        // Check for a valid email address.
+        // Check for a valid email address and password .
         if (TextUtils.isEmpty(email)) {
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
@@ -126,6 +126,16 @@ public class LoginActivity extends AppCompatActivity  {
             mEmailView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
             cancel = true;
+        } else if (TextUtils.isEmpty(password)) {
+            mPasswordView.setError(getString(R.string.error_field_required));
+            focusView = mPasswordView;
+            cancel = true;
+        } else if (!isPasswordValid(password)){
+            mPasswordView.setError("Invalid password");
+            focusView = mPasswordView;
+            cancel = true;
+        }else {
+            Log.i(TAG,"Looks like everything is OK");
         }
 
         if (cancel) {
@@ -136,7 +146,6 @@ public class LoginActivity extends AppCompatActivity  {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            // Check input
             mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
