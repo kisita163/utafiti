@@ -1,9 +1,15 @@
 package com.kisita.caritas;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Address;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -23,23 +29,23 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.kisita.caritas.CurrentSurvey.CURRENT_SURVEY;
+import static com.kisita.caritas.CurrentSurveyService.CURRENT_SURVEY;
 import static com.kisita.caritas.InvestigatorFragment.getToday;
-import static com.kisita.caritas.InvestigatorFragment.newInstance;
+import static com.kisita.caritas.LocationService.BROADCAST_LOCATION;
+import static com.kisita.caritas.LocationService.CURRENT_ADDRESS;
+import static com.kisita.caritas.LocationService.printAddress;
+import static com.kisita.caritas.LocationService.startActionGetCity;
 
 public class MainActivity extends AppCompatActivity implements PublishFragment.OnPublishInteractionListener, BottomNavigationView.OnNavigationItemSelectedListener, InvestigatorFragment.OnInvestigatorInteractionListener {
 
     private final static String TAG      = "MainActivity";
 
     private final static String SECTIONS = "sections";
+    private static final int REQUEST_COARSE_LOCATION = 100;
 
     private String mCurrentSurvey        = "";
 
@@ -75,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
 
         mCurrentSurvey = getIntent().getExtras().getString(CURRENT_SURVEY);
         //
+        requestPermissionsForLocalisation();
+        //
         if(savedInstanceState != null){
             mSections = (ArrayList<Section>) savedInstanceState.getSerializable(SECTIONS);
         }else{
@@ -87,10 +95,32 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         navigation.setOnNavigationItemSelectedListener(this);
 
         setStartDateTime();
+
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                //Log.i(TAG,intent.getStringExtra("com.kisita.caritas.action.CURRENT_SURVEY"));
+                unregisterReceiver(this);
+                Address address    = intent.getParcelableExtra(CURRENT_ADDRESS);
+                setLocalAddress(address.getAdminArea());
+
+                Log.i(TAG,"?????"+mSectionPagerAdapter.getItem(0).isVisible() );
+
+                //printAddress(address,TAG);
+            }
+        }, new IntentFilter(BROADCAST_LOCATION));
+    }
+
+    private void setLocalAddress(String address){
+        SharedPreferences sharedPref = getSharedPreferences(getResources()
+                .getString(R.string.caritas_keys), Context.MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(getString(R.string.address_key), address);
+        editor.apply();
     }
 
     private void setStartDateTime() {
-        Log.i(TAG,"setStartDateTime");
         SharedPreferences sharedPref = getSharedPreferences(getResources()
                         .getString(R.string.caritas_keys), Context.MODE_PRIVATE);
         String date = getToday(true);
@@ -99,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(getString(R.string.start_date_key), date);
         editor.putString(getString(R.string.start_time_key), time);
-        editor.commit();
+        editor.apply();
     }
 
     // Create array of sections
@@ -175,7 +205,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         //printSections();
     }
 
-    public void printSections(){
+    /*public void printSections(){
         for(Section s : mSections){
             //Log.i(TAG,s.getName());
             for(Question q : s.getQuestions()){
@@ -196,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
                 //Log.i(TAG,"-->" + q.getChoice());
             }
         }
-    }
+    }*/
 
     @Override
     public void onPublishInteraction(String endTime) {
@@ -220,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
                 childUpdates.put(getUid() + "/" + key + "/section_"+j+"/endTime",endTime);
                 childUpdates.put(getUid() + "/" + key + "/section_"+j+"/date",s.getDate());
                 childUpdates.put(getUid() + "/" + key + "/section_"+j+"/investigator",s.getInvestigator());
-                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/province",s.getProvince());
+                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/province",s.getLocation());
             }
             childUpdates.put(getUid() + "/" + key + "/section_"+j+"/name",s.getName());
             for(Question q : s.getQuestions()){
@@ -356,5 +386,37 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         //Log.i(TAG,"onSaveInstanceState");
         savedInstanceState.putSerializable(SECTIONS,mSections);
         super.onSaveInstanceState(savedInstanceState);
+    }
+
+    private void requestPermissionsForLocalisation(){
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
+                    REQUEST_COARSE_LOCATION);
+        }else{
+            // get current city
+            startActionGetCity(this);
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_COARSE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // get current city
+                    startActionGetCity(this);
+
+                } else {
+                    //TODO
+                }
+            }
+        }
     }
 }

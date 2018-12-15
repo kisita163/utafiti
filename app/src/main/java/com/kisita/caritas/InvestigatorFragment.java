@@ -39,7 +39,7 @@ public class InvestigatorFragment extends Fragment {
 
     private EditText mInvestigator;
 
-    private AppCompatSpinner mProvince;
+    private EditText mLocation;
 
     private static final String ARG_SECTION = "section";
 
@@ -48,6 +48,8 @@ public class InvestigatorFragment extends Fragment {
     private OnInvestigatorInteractionListener mListener;
 
     private String date;
+
+    private String localAddress;
 
     private String start;
 
@@ -82,24 +84,30 @@ public class InvestigatorFragment extends Fragment {
         final Section section = (Section) getArguments().getSerializable(ARG_SECTION);
         View v = inflater.inflate(R.layout.fragment_investigator, container, false);
 
-        mDate         = v.findViewById(R.id.date);
+        mDate         = v.findViewById(R.id.now);
         mInvestigator = v.findViewById(R.id.investigator);
         mStartTime    = v.findViewById(R.id.start_time);
-        mProvince     = v.findViewById(R.id.province);
+        mLocation     = v.findViewById(R.id.location);
 
         SharedPreferences sharedPref = getActivity()
                 .getSharedPreferences(getResources()
                         .getString(R.string.caritas_keys), Context.MODE_PRIVATE);
 
-        date  = sharedPref.getString(getResources().getString(R.string.start_date_key),"");
-        start = sharedPref.getString(getResources().getString(R.string.start_time_key),"");
+        date         = sharedPref.getString(getResources().getString(R.string.start_date_key),"");
+        start        = sharedPref.getString(getResources().getString(R.string.start_time_key),"");
+        localAddress = sharedPref.getString(getResources().getString(R.string.address_key),"null");
 
-        Log.i(TAG,"" + date + " " + start);
+        //Log.i(TAG,"" + date + " " + start);
 
+        mLocation.setText(localAddress);
+        mLocation.setEnabled(false);
+        section.setLocation(localAddress);
 
         mDate.setText(date); // get the date
         mDate.setEnabled(false);
         section.setDate(date);
+
+
         section.setStart(start);
         Log.i(TAG,"Section Start time is  : " + section.getStart());
         //Log.i(TAG,"Start time is  : " + start);
@@ -108,6 +116,8 @@ public class InvestigatorFragment extends Fragment {
 
         String investigator = sharedPref.getString(getString(R.string.investigator),"");
         mInvestigator.setText(investigator);
+        //TODO get investigator name fro firebase
+
         section.setInvestigator(investigator);
 
         final SharedPreferences.Editor editor = sharedPref.edit();
@@ -122,24 +132,11 @@ public class InvestigatorFragment extends Fragment {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 section.setInvestigator(charSequence.toString());
                 editor.putString(getString(R.string.investigator), charSequence.toString());
-                editor.commit();
+                editor.apply();
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
-
-            }
-        });
-
-        mProvince.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                //Log.i(TAG,"The province is "+ mProvince.getItemAtPosition(i));
-                section.setProvince(mProvince.getItemAtPosition(i).toString());
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
 
             }
         });
@@ -206,4 +203,5 @@ public class InvestigatorFragment extends Fragment {
         mStartTime.setText(start);
         mDate.setText(date);
     }
+
 }

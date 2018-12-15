@@ -3,7 +3,6 @@ package com.kisita.caritas;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.Context;
-import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,20 +17,20 @@ import java.net.URL;
  * TODO: Customize class - update intent actions, extra parameters and static
  * helper methods.
  */
-public class CurrentSurvey extends IntentService {
+public class CurrentSurveyService extends IntentService {
 
     private static final String ACTION_FETCH_SURVEY  = "com.kisita.caritas.action.FETCH_SURVEY";
 
-    public  static final String BROADCAST_ACTION     = "com.kisita.caritas.action.BROADCAST_SURVEY";
+    public  static final String BROADCAST_SURVEY     = "com.kisita.caritas.action.BROADCAST_SURVEY";
 
     public  static final String CURRENT_SURVEY       = "com.kisita.caritas.action.CURRENT_SURVEY";
 
-    private static final String TAG                  = "CurrentSurvey";
+    private static final String TAG                  = "CurrentSurveyService";
 
     private static final String SURVEY_URL           = "https://firebasestorage.googleapis.com/v0/b/caritas-50fab.appspot.com/o/current_survey%2Fsurvey.json?alt=media";
 
-    public CurrentSurvey() {
-        super("CurrentSurvey");
+    public CurrentSurveyService() {
+        super("CurrentSurveyService");
     }
 
     /**
@@ -42,7 +41,7 @@ public class CurrentSurvey extends IntentService {
      */
     public static void startActionFetchSurvey(Context context) {
 
-        Intent intent = new Intent(context, CurrentSurvey.class);
+        Intent intent = new Intent(context, CurrentSurveyService.class);
         intent.setAction(ACTION_FETCH_SURVEY);
         context.startService(intent);
     }
@@ -76,7 +75,7 @@ public class CurrentSurvey extends IntentService {
             }
             //Log.i(TAG,surveyJson.toString());
             Intent localIntent =
-                    new Intent(BROADCAST_ACTION)
+                    new Intent(BROADCAST_SURVEY)
                             // Puts the status into the Intent
                             .putExtra(CURRENT_SURVEY,surveyJson.toString());
 

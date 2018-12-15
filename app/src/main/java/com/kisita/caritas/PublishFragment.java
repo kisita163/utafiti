@@ -139,4 +139,12 @@ public class PublishFragment extends Fragment {
             }
         });
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(getUserVisibleHint()){
+            mEndTime.setText(getToday(false));
+        }
+    }
 }

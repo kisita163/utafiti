@@ -28,10 +28,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.FirebaseDatabase;
 
-import static com.kisita.caritas.CurrentSurvey.CURRENT_SURVEY;
-import static com.kisita.caritas.CurrentSurvey.startActionFetchSurvey;
+import static com.kisita.caritas.CurrentSurveyService.BROADCAST_SURVEY;
+import static com.kisita.caritas.CurrentSurveyService.CURRENT_SURVEY;
+import static com.kisita.caritas.CurrentSurveyService.startActionFetchSurvey;
 
 /**
  * A login screen that offers login via email/password.
@@ -113,7 +113,7 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(i);
                 finish();
             }
-        }, new IntentFilter("com.kisita.caritas.action.BROADCAST_SURVEY"));
+        }, new IntentFilter(BROADCAST_SURVEY));
 
     }
 
@@ -165,7 +165,7 @@ public class LoginActivity extends AppCompatActivity {
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
-            focusView.requestFocus();
+            //focusView.requestFocus();
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.

@@ -17,7 +17,7 @@ public class Section implements Serializable{
 
     private String start        = "";
 
-    private String province     = "";
+    private String location     = "";
 
 
     private ArrayList<Question> questions = new ArrayList<>();
@@ -62,11 +62,11 @@ public class Section implements Serializable{
         this.start = start;
     }
 
-    public String getProvince() {
-        return province;
+    public String getLocation() {
+        return location;
     }
 
-    public void setProvince(String province) {
-        this.province = province;
+    public void setLocation(String location) {
+        this.location = location;
     }
 }

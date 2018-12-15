@@ -36,6 +36,7 @@
     <string name="start_date">date</string>
     <string name="start_date_key">date_key</string>
     <string name="start_time_key">time_key</string>
+    <string name="address_key">address_key</string>
 
     <string-array name="provinces">
         <!--<item>Bubanza</item>
