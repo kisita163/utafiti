@@ -3,7 +3,10 @@ package com.kisita.caritas;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Build;
@@ -27,16 +30,19 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 
+import static com.kisita.caritas.CurrentSurvey.CURRENT_SURVEY;
+import static com.kisita.caritas.CurrentSurvey.startActionFetchSurvey;
+
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity  {
+public class LoginActivity extends AppCompatActivity {
     /* Declaring the FirebaseAuth and the authentication listener */
     private FirebaseAuth mAuth;
 
     private FirebaseAuth.AuthStateListener mAuthListener;
 
-    private final static String TAG = "LoginActivity";
+    private final static String TAG             = "LoginActivity";
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -91,6 +97,24 @@ public class LoginActivity extends AppCompatActivity  {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                //Log.i(TAG,intent.getStringExtra("com.kisita.caritas.action.CURRENT_SURVEY"));
+                unregisterReceiver(this);
+                String survey = intent.getStringExtra(CURRENT_SURVEY);
+                // Go to MainActivity
+                showProgress(false);
+                Intent i = new Intent(LoginActivity.this,MainActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                i.putExtra(CURRENT_SURVEY,survey);
+                //Log.d(TAG, "User signed in");
+                startActivity(i);
+                finish();
+            }
+        }, new IntentFilter("com.kisita.caritas.action.BROADCAST_SURVEY"));
+
     }
 
     /**
@@ -150,29 +174,25 @@ public class LoginActivity extends AppCompatActivity  {
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        showProgress(false);
-                        Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
+                        //Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "Sign in : success");
+                            //Log.d(TAG, "Sign in : success");
                             onAuthSuccess();
                         } else {
                             // If sign in fails, display a message to the user.
-                            Log.w(TAG, "Sign in : failure", task.getException());
+                            //Log.w(TAG, "Sign in : failure", task.getException());
                             Toast.makeText(LoginActivity.this, R.string.auth_failed,
                                     Toast.LENGTH_LONG).show();
                         }                    }
                 });
+            //TODO refresh the screen here
         }
     }
 
     private void onAuthSuccess() {
-        // Go to MainActivity
-        Intent i = new Intent(LoginActivity.this,MainActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        Log.d(TAG, "User signed in");
-        startActivity(i);
-        finish();
+
+        startActionFetchSurvey(this);
     }
 
     private boolean isEmailValid(String email) {

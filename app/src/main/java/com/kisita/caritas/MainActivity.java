@@ -31,13 +31,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.kisita.caritas.CurrentSurvey.CURRENT_SURVEY;
 import static com.kisita.caritas.InvestigatorFragment.getToday;
+import static com.kisita.caritas.InvestigatorFragment.newInstance;
 
 public class MainActivity extends AppCompatActivity implements PublishFragment.OnPublishInteractionListener, BottomNavigationView.OnNavigationItemSelectedListener, InvestigatorFragment.OnInvestigatorInteractionListener {
 
     private final static String TAG      = "MainActivity";
 
     private final static String SECTIONS = "sections";
+
+    private String mCurrentSurvey        = "";
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -68,6 +72,8 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
+
+        mCurrentSurvey = getIntent().getExtras().getString(CURRENT_SURVEY);
         //
         if(savedInstanceState != null){
             mSections = (ArrayList<Section>) savedInstanceState.getSerializable(SECTIONS);
@@ -96,24 +102,6 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         editor.commit();
     }
 
-    /**
-     * @return Survey's sections and questions from json file
-     * @throws IOException
-     */
-    @NonNull
-    private String readSurveyFromResources() throws IOException {
-        StringBuilder surveyJson = new StringBuilder();
-        InputStream rawCategories = getResources().openRawResource(R.raw.survey_test);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(rawCategories));
-        String line;
-        //Log.i(TAG,"Reading line ...");
-        while ((line = reader.readLine()) != null) {
-            //Log.i(TAG,"New line  : "+line);
-            surveyJson.append(line);
-        }
-        return surveyJson.toString();
-    }
-
     // Create array of sections
     private void populateSections() {
         JSONArray jsonSurvey = null;
@@ -130,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         mSections.add(first);
         //
         try {
-            jsonSurvey = new JSONArray(readSurveyFromResources());
+            jsonSurvey = new JSONArray(mCurrentSurvey);
             for (int i = 0; i < jsonSurvey.length(); i++) {
                 // Get section
                 section = jsonSurvey.getJSONObject(i);
@@ -182,8 +170,6 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
             }
         }catch (JSONException e){
             //TODO Exceptions handling
-            e.printStackTrace();
-        }catch(IOException e){
             e.printStackTrace();
         }
         //printSections();
