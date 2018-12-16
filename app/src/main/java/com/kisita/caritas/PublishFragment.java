@@ -31,7 +31,6 @@ public class PublishFragment extends Fragment {
     private final static String TAG = "PublishFragment";
     private Button mPublishButton;
     private View mProgressView;
-    private EditText mEndTime;
     private OnPublishInteractionListener mListener;
 
     public PublishFragment() {
@@ -63,15 +62,15 @@ public class PublishFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_publish, container, false);
         mPublishButton = v.findViewById(R.id.publish_button);
-        mEndTime       = v.findViewById(R.id.end_time);
+        //mEndTime       = v.findViewById(R.id.end_time);
         mPublishButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onButtonPressed(mEndTime.getText().toString());
+                onButtonPressed(getToday(false));
             }
         });
-        mEndTime.setText(getToday(false));
-        mEndTime.setEnabled(false);
+        //mEndTime.setText(getToday(false));
+        //mEndTime.setEnabled(false);
         mProgressView = v.findViewById(R.id.login_progress);
 
         return v;
@@ -138,13 +137,5 @@ public class PublishFragment extends Fragment {
                 mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if(getUserVisibleHint()){
-            mEndTime.setText(getToday(false));
-        }
     }
 }

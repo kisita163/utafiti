@@ -10,10 +10,10 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.kisita.caritas.LoginActivity">
     <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:layout_margin="@dimen/pad_20dp"
-        android:src="@drawable/caritas_logo_transparent">
+        android:src="@drawable/survey_logo">
     </ImageView>
     <!-- Login progress -->
     <ProgressBar

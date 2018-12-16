@@ -37,17 +37,19 @@ import static com.kisita.caritas.CurrentSurveyService.CURRENT_SURVEY;
 import static com.kisita.caritas.InvestigatorFragment.getToday;
 import static com.kisita.caritas.LocationService.BROADCAST_LOCATION;
 import static com.kisita.caritas.LocationService.CURRENT_ADDRESS;
-import static com.kisita.caritas.LocationService.printAddress;
 import static com.kisita.caritas.LocationService.startActionGetCity;
 
 public class MainActivity extends AppCompatActivity implements PublishFragment.OnPublishInteractionListener, BottomNavigationView.OnNavigationItemSelectedListener, InvestigatorFragment.OnInvestigatorInteractionListener {
 
     private final static String TAG      = "MainActivity";
 
+    private Address mAddress;
+
     private final static String SECTIONS = "sections";
     private static final int REQUEST_COARSE_LOCATION = 100;
 
     private String mCurrentSurvey        = "";
+    private String mSurveyTitle          = "";
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -101,10 +103,8 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
             public void onReceive(Context context, Intent intent) {
                 //Log.i(TAG,intent.getStringExtra("com.kisita.caritas.action.CURRENT_SURVEY"));
                 unregisterReceiver(this);
-                Address address    = intent.getParcelableExtra(CURRENT_ADDRESS);
-                setLocalAddress(address.getAdminArea());
-
-                Log.i(TAG,"?????"+mSectionPagerAdapter.getItem(0).isVisible() );
+                mAddress    = intent.getParcelableExtra(CURRENT_ADDRESS);
+                setLocalAddress(mAddress.getCountryName());
 
                 //printAddress(address,TAG);
             }
@@ -118,6 +118,8 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(getString(R.string.address_key), address);
         editor.apply();
+        mSectionPagerAdapter.notifyDataSetChanged();
+
     }
 
     private void setStartDateTime() {
@@ -142,13 +144,17 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         JSONArray  inChoices   = null;
         JSONObject inValues   = null;
         Section sec;
-
-        // First section
-        Section first = new Section("");
-        mSections.add(first);
         //
         try {
-            jsonSurvey = new JSONArray(mCurrentSurvey);
+            JSONObject surveyParser = new JSONObject(mCurrentSurvey);
+
+            mSurveyTitle = surveyParser.getString("name");
+
+            // First section
+            Section first = new Section(mSurveyTitle);
+            mSections.add(first);
+
+            jsonSurvey = surveyParser.getJSONArray("sections");
             for (int i = 0; i < jsonSurvey.length(); i++) {
                 // Get section
                 section = jsonSurvey.getJSONObject(i);
@@ -182,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
                     for(int j = 0; j < values.length() ; j++){
                         Log.i(TAG,"values length is : "+ values.length());
                         ArrayList<String> choices = new ArrayList<>();
-                        choices.add("");
+                        //choices.add("");
                         inValues  = values.getJSONObject(j);
                         inChoices = inValues.getJSONArray("choices");
                         for (int v = 0 ; v < inChoices.length() ; v++){
@@ -203,6 +209,17 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
             e.printStackTrace();
         }
         //printSections();
+    }
+
+    private void setSurveyPreference(int keyId,String name) {
+
+        SharedPreferences sharedPref = getSharedPreferences(getResources()
+                .getString(R.string.caritas_keys), Context.MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(getString(keyId), name);
+        editor.apply();
+
     }
 
     /*public void printSections(){
@@ -245,12 +262,16 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         int j = 1;
 
         for(Section s : mSections){
-            if(s.getName().equalsIgnoreCase("")){
+            if(s.getName().equalsIgnoreCase(mSurveyTitle)){
                 childUpdates.put(getUid() + "/" + key + "/section_"+j+"/startTime",s.getStart());
                 childUpdates.put(getUid() + "/" + key + "/section_"+j+"/endTime",endTime);
                 childUpdates.put(getUid() + "/" + key + "/section_"+j+"/date",s.getDate());
                 childUpdates.put(getUid() + "/" + key + "/section_"+j+"/investigator",s.getInvestigator());
-                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/province",s.getLocation());
+                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/country",mAddress.getCountryName());
+                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/city",mAddress.getAdminArea());
+                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/postal_code",mAddress.getPostalCode());
+                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/latitude",mAddress.getLatitude());
+                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/longitude",mAddress.getLongitude());
             }
             childUpdates.put(getUid() + "/" + key + "/section_"+j+"/name",s.getName());
             for(Question q : s.getQuestions()){

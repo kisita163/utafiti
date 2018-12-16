@@ -1,5 +1,7 @@
 package com.kisita.caritas;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
@@ -41,7 +43,7 @@ public class PlaceholderFragment extends Fragment {
     public static PlaceholderFragment newInstance(Section sectionQuestions) {
         PlaceholderFragment fragment = new PlaceholderFragment();
         Bundle args = new Bundle();
-        args.putSerializable(ARG_SECTION_QUESTIONS,(Serializable) sectionQuestions);
+        args.putSerializable(ARG_SECTION_QUESTIONS, sectionQuestions);
         fragment.setArguments(args);
         return fragment;
     }
@@ -49,6 +51,10 @@ public class PlaceholderFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        SharedPreferences sharedPref = getActivity()
+                .getSharedPreferences(getResources()
+                        .getString(R.string.caritas_keys), Context.MODE_PRIVATE);
+
         Section sectionQuestions = (Section) getArguments().getSerializable(ARG_SECTION_QUESTIONS);
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -67,15 +73,15 @@ public class PlaceholderFragment extends Fragment {
 
         //printQuestions(sectionQuestions.getQuestions());
 
-        TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-        textView.setText(sectionQuestions.getName());
+        TextView textView =  rootView.findViewById(R.id.section_label);
+        textView.setText(sharedPref.getString(getResources().getString(R.string.survey_title_key),""));
 
         return rootView;
     }
 
-    private void printQuestions(ArrayList<Question> questions){
+    /*private void printQuestions(ArrayList<Question> questions){
         for(Question q : questions){
             //Log.i(TAG,q.getQuestion());
         }
-    }
+    }*/
 }

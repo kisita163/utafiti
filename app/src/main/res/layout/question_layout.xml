@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:clickable="true"
     android:foreground="?android:selectableItemBackground">
     <TextView
@@ -13,13 +14,14 @@
         android:layout_marginBottom="20dp"
         android:layout_height="wrap_content" />
 
-    <android.support.v7.widget.AppCompatSpinner
+    <com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner
         android:id="@+id/values"
         android:layout_width="match_parent"
         android:layout_marginTop="20dp"
         android:layout_marginBottom="20dp"
         android:layout_below="@id/question"
-        android:background="@drawable/bg_dropdown"
+        android:hint="@string/press_here_to_choice"
+        app:met_floatingLabel="normal"
         android:layout_height="wrap_content"/>
 
     <EditText

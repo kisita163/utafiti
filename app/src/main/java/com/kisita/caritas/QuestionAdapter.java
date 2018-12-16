@@ -1,6 +1,7 @@
 package com.kisita.caritas;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -14,6 +15,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,43 +59,30 @@ public class QuestionAdapter extends RecyclerView.Adapter< QuestionAdapter.ViewH
             holder.mTextInput.setVisibility(View.GONE);
             holder.mValues.setVisibility(View.VISIBLE);
             //Spinner
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(mContext, android.R.layout.simple_spinner_item, d.getChoices().get(d.getChoicesSet()));
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(mContext, android.R.layout.simple_dropdown_item_1line, d.getChoices().get(d.getChoicesSet()));
 
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            //adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
             holder.mValues.setAdapter(adapter);
             holder.mValues.setSelection(d.getPos());
-            holder.mValues.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            holder.mValues.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    Log.i(TAG, "item selected ..." + d.getChoices().get(d.getChoicesSet()).get(i));
-                    String choice  = d.getChoices().get(d.getChoicesSet()).get(i);
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                    //Log.i(TAG, "item selected ..." + d.getChoices().get(d.getChoicesSet()).get(position));
+                    String choice  = d.getChoices().get(d.getChoicesSet()).get(position);
                     // Set the choices
                     d.setChoice(choice);
                     // Set the position of the current choice  from the choice list
                     // It will help to set properly the spinner when we create it again
-                    d.setPos(i);
+                    d.setPos(position);
                     //Log.i(TAG, "item selected ... depends on : " + d.getDependsOn());
-                    if(!d.getInfluenceOn().equalsIgnoreCase("")){
-                        ArrayList<String> questions =
-                                new ArrayList<String>(Arrays.asList(d.getInfluenceOn().split(",")));
-                        d.setDependingQuestion(questions,mQuestions,QuestionAdapter.this);
-                    }
-
-                    /*if(!d.getDependsOn().equalsIgnoreCase("")){
-                        int inf = Integer.valueOf(d.getDependsOn());
-                        Log.i(TAG, "item selected ... The question depends on   : " + mQuestions.get(inf - 1).getQuestion() + " selected is  : " + mQuestions.get(inf - 1).getPos() );
-                    }*/
 
                     if(choice.equalsIgnoreCase("autre")){
                         holder.mComment.setVisibility(View.VISIBLE);
                     }else{
                         holder.mComment.setVisibility(View.GONE);
                     }
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> adapterView) {
-
                 }
             });
         }
@@ -175,7 +165,7 @@ public class QuestionAdapter extends RecyclerView.Adapter< QuestionAdapter.ViewH
         public final View mView;
         public final TextView mQuestion;
         public final EditText mTextInput;
-        public final AppCompatSpinner mValues;
+        public final MaterialBetterSpinner mValues;
         public final EditText mComment;
 
 
@@ -183,7 +173,8 @@ public class QuestionAdapter extends RecyclerView.Adapter< QuestionAdapter.ViewH
             super(view);
             mView      = view;
             mQuestion  = (TextView) view.findViewById(R.id.question);
-            mValues    = (AppCompatSpinner)view.findViewById(R.id.values);
+            //mValues    = (AppCompatSpinner)view.findViewById(R.id.values);
+            mValues = (MaterialBetterSpinner) view.findViewById(R.id.values);
             mTextInput = (EditText) view.findViewById(R.id.text_input);
             mComment   = (EditText) view.findViewById(R.id.text_comment);
         }
