@@ -1,4 +1,4 @@
-package com.kisita.caritas;
+package com.kisita.utafiti;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

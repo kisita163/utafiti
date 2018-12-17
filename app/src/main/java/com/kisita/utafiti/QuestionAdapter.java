@@ -1,13 +1,10 @@
-package com.kisita.caritas;
+package com.kisita.utafiti;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +16,6 @@ import android.widget.TextView;
 import com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /*
  * Created by HuguesKi on 01-12-17.

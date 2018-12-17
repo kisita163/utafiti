@@ -49,6 +49,37 @@
           "status": 2
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:414267024306:android:b16361bf037bb83a",
+        "android_client_info": {
+          "package_name": "com.kisita.utafiti"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "414267024306-bhs60789v31004q8ct8htbq6kesp7rge.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpoE5NXVRKqD1xCtFBtYtuSy5RzxhjtUw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
     }
   ],
   "configuration_version": "1"

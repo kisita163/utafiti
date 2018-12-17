@@ -1,4 +1,4 @@
-package com.kisita.caritas;
+package com.kisita.utafiti;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -29,9 +29,9 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import static com.kisita.caritas.CurrentSurveyService.BROADCAST_SURVEY;
-import static com.kisita.caritas.CurrentSurveyService.CURRENT_SURVEY;
-import static com.kisita.caritas.CurrentSurveyService.startActionFetchSurvey;
+import static com.kisita.utafiti.CurrentSurveyService.BROADCAST_SURVEY;
+import static com.kisita.utafiti.CurrentSurveyService.CURRENT_SURVEY;
+import static com.kisita.utafiti.CurrentSurveyService.startActionFetchSurvey;
 
 /**
  * A login screen that offers login via email/password.

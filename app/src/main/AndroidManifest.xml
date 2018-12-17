@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.kisita.caritas"
+    package="com.kisita.utafiti"
     android:installLocation="auto"
     android:versionCode="5"
     android:versionName="2.0">
@@ -17,11 +17,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name="com.kisita.utafiti.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".SplashScreenActivity"
+            android:name="com.kisita.utafiti.SplashScreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
             android:theme="@style/FullscreenTheme">
@@ -32,18 +32,18 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".LoginActivity"
+            android:name="com.kisita.utafiti.LoginActivity"
             android:label="@string/title_activity_login"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <service
-            android:name=".CurrentSurveyService"
+            android:name="com.kisita.utafiti.CurrentSurveyService"
             android:exported="false" />
 
-        <receiver android:name=".LoginActivity" />
+        <receiver android:name="com.kisita.utafiti.LoginActivity" />
 
         <service
-            android:name=".LocationService"
+            android:name="com.kisita.utafiti.LocationService"
             android:exported="false"></service>
     </application>
 

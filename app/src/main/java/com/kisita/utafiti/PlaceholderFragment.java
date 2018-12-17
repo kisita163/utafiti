@@ -1,4 +1,4 @@
-package com.kisita.caritas;
+package com.kisita.utafiti;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -7,15 +7,10 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-
-import java.io.Serializable;
-import java.util.ArrayList;
 
 /**
  * Created by HuguesKi on 01-12-17.

@@ -1,4 +1,4 @@
-package com.kisita.caritas;
+package com.kisita.utafiti;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -33,11 +33,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.kisita.caritas.CurrentSurveyService.CURRENT_SURVEY;
-import static com.kisita.caritas.InvestigatorFragment.getToday;
-import static com.kisita.caritas.LocationService.BROADCAST_LOCATION;
-import static com.kisita.caritas.LocationService.CURRENT_ADDRESS;
-import static com.kisita.caritas.LocationService.startActionGetCity;
+import static com.kisita.utafiti.CurrentSurveyService.CURRENT_SURVEY;
+import static com.kisita.utafiti.InvestigatorFragment.getToday;
+import static com.kisita.utafiti.LocationService.BROADCAST_LOCATION;
+import static com.kisita.utafiti.LocationService.CURRENT_ADDRESS;
+import static com.kisita.utafiti.LocationService.startActionGetCity;
 
 public class MainActivity extends AppCompatActivity implements PublishFragment.OnPublishInteractionListener, BottomNavigationView.OnNavigationItemSelectedListener, InvestigatorFragment.OnInvestigatorInteractionListener {
 
@@ -101,11 +101,10 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                //Log.i(TAG,intent.getStringExtra("com.kisita.caritas.action.CURRENT_SURVEY"));
                 unregisterReceiver(this);
                 mAddress    = intent.getParcelableExtra(CURRENT_ADDRESS);
                 setLocalAddress(mAddress.getCountryName());
-
+                mSectionPagerAdapter.notifyDataSetChanged();
                 //printAddress(address,TAG);
             }
         }, new IntentFilter(BROADCAST_LOCATION));
@@ -118,8 +117,6 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(getString(R.string.address_key), address);
         editor.apply();
-        mSectionPagerAdapter.notifyDataSetChanged();
-
     }
 
     private void setStartDateTime() {
@@ -148,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         try {
             JSONObject surveyParser = new JSONObject(mCurrentSurvey);
 
-            mSurveyTitle = surveyParser.getString("name");
+            setSurveyPreference(R.string.survey_title_key,surveyParser.getString("name"));
 
             // First section
             Section first = new Section(mSurveyTitle);

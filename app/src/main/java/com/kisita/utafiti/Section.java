@@ -1,4 +1,4 @@
-package com.kisita.caritas;
+package com.kisita.utafiti;
 
 import java.io.Serializable;
 import java.util.ArrayList;

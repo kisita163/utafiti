@@ -1,4 +1,4 @@
-package com.kisita.caritas;
+package com.kisita.utafiti;
 
 import android.app.IntentService;
 import android.content.Intent;
