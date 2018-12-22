@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -77,7 +78,12 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        // Enabling disk persistence
+        try {
+            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
 
@@ -292,17 +298,19 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
                 //Log.i(TAG,"Transactions are not persisted across app restarts");
 
             }
-        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+        });
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
             @Override
-            public void onSuccess(Void aVoid) {
-                //Log.i(TAG, "Transaction succeed");
+            public void run() {
                 mViewPager.setCurrentItem(0);
                 clearSurveyAnswers();
                 ((PublishFragment)publish).showProgress(false);
                 Toast.makeText(MainActivity.this, R.string.survey_published,
                         Toast.LENGTH_LONG).show();
             }
-        });
+        }, 3000);
     }
 
     public DatabaseReference getDb(String reference) {

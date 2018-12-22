@@ -28,6 +28,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.FirebaseDatabase;
 
 import static com.kisita.utafiti.CurrentSurveyService.BROADCAST_SURVEY;
 import static com.kisita.utafiti.CurrentSurveyService.CURRENT_SURVEY;
@@ -55,7 +56,11 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         // Enabling disk persistence
-        //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        try {
+            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         /* Initializing FirebaseAuth instance and
            the AuthStateListener method so you can track whenever the user signs in or out.
          */
@@ -68,7 +73,6 @@ public class LoginActivity extends AppCompatActivity {
                 if (user != null) {
                     // User is signed in
                     //onAuthSuccess();
-                    //TODO
                 }
             }
         };
