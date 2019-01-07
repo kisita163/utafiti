@@ -21,7 +21,6 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -36,9 +35,9 @@ import java.util.Map;
 
 import static com.kisita.utafiti.CurrentSurveyService.CURRENT_SURVEY;
 import static com.kisita.utafiti.InvestigatorFragment.getToday;
-import static com.kisita.utafiti.LocationService.BROADCAST_LOCATION;
-import static com.kisita.utafiti.LocationService.CURRENT_ADDRESS;
-import static com.kisita.utafiti.LocationService.startActionGetCity;
+import static com.kisita.utafiti.services.LocationService.BROADCAST_LOCATION;
+import static com.kisita.utafiti.services.LocationService.CURRENT_ADDRESS;
+import static com.kisita.utafiti.services.LocationService.startActionGetCity;
 
 public class MainActivity extends AppCompatActivity implements PublishFragment.OnPublishInteractionListener, BottomNavigationView.OnNavigationItemSelectedListener, InvestigatorFragment.OnInvestigatorInteractionListener {
 

@@ -1,4 +1,4 @@
-package com.kisita.utafiti;
+package com.kisita.utafiti.services;
 
 import android.annotation.SuppressLint;
 import android.app.IntentService;
