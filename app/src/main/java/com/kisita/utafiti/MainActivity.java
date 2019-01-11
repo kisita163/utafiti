@@ -312,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         }, 3000);
     }
 
-    public DatabaseReference getDb(String reference) {
+    public static DatabaseReference getDb(String reference) {
         return FirebaseDatabase.getInstance().getReference(reference);
     }
 

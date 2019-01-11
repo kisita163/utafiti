@@ -55,12 +55,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        // Enabling disk persistence
-        try {
-            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
         /* Initializing FirebaseAuth instance and
            the AuthStateListener method so you can track whenever the user signs in or out.
          */
