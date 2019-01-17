@@ -17,6 +17,7 @@ import com.google.firebase.messaging.RemoteMessage;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.kisita.utafiti.CurrentSurveyService.startActionFetchSurvey;
 import static com.kisita.utafiti.MainActivity.getDb;
 
 public class SurveyService extends FirebaseMessagingService {
@@ -53,15 +54,12 @@ public class SurveyService extends FirebaseMessagingService {
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Log.d(TAG, "From: " + remoteMessage.getFrom());
 
-        // Check if message contains a data payload.
-        if (remoteMessage.getData().size() > 0) {
-            Log.d(TAG, "Message data payload: " + remoteMessage.getData()+  "("+remoteMessage.getData().size()+")");
-
-            if(remoteMessage.getData().size() > 10000){
-                // Schedule a job for huge files
+        if(remoteMessage.getFrom().contains("/topics/survey")) {
+            // Check if message contains a data payload.
+            if (remoteMessage.getData().size() > 0) {
+                Log.d(TAG, "Message data payload: " + remoteMessage.getData() + "(" + remoteMessage.getData().size() + ")");
+                // Schedule a job for fetching survey data
                 scheduleJob();
-            }else {
-                handleNow();
             }
         }
 
@@ -69,9 +67,6 @@ public class SurveyService extends FirebaseMessagingService {
         if (remoteMessage.getNotification() != null) {
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
-
-        // Also if you intend on generating your own notifications as a result of a received FCM
-        // message, here is where that should be initiated. See sendNotification method below.
     }
     // [END receive_message]
 
@@ -106,18 +101,11 @@ public class SurveyService extends FirebaseMessagingService {
         // [START dispatch_job]
         FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
         Job myJob = dispatcher.newJobBuilder()
-                //.setService(MyJobService.class)
+                .setService(FetchSurveyService.class)
                 .setTag("Long running task")
                 .build();
         dispatcher.schedule(myJob);
         // [END dispatch_job]
-    }
-
-    /**
-     * Handle time allotted to BroadcastReceivers.
-     */
-    private void handleNow() {
-        Log.d(TAG, "Short lived task is done.");
     }
 
     /**
@@ -144,8 +132,8 @@ public class SurveyService extends FirebaseMessagingService {
                     if (task.isSuccessful()) {
                         // Sign in success, update UI with the signed-in user's information
                         // Register the new device token
+                        Log.d(TAG,"Register the new device token now");
                         getDb("devices").updateChildren(childUpdates);
-                        signOutAnonymous();
                     } else {
                         // If sign in fails, display a message to the user.
                         Log.w(TAG, "signInAnonymously:failure", task.getException());
@@ -155,14 +143,8 @@ public class SurveyService extends FirebaseMessagingService {
             });
         }else{
             // Register the new device token now
+            Log.d(TAG,"Register the new device token now");
             getDb("devices").updateChildren(childUpdates);
-            signOutAnonymous();
-        }
-    }
-
-    private void signOutAnonymous(){
-        if( mAuth.getCurrentUser().isAnonymous()){
-            mAuth.signOut();
         }
     }
 }
