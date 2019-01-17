@@ -1,16 +1,104 @@
 package com.kisita.utafiti.services;
 
-import android.app.Service;
-import android.content.Intent;
-import android.os.IBinder;
+import com.firebase.jobdispatcher.JobParameters;
+import com.firebase.jobdispatcher.JobService;
 
-public class FetchSurveyService extends Service {
-    public FetchSurveyService() {
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+
+public class FetchSurveyService extends JobService {
+
+    private static final String TAG                  = "FetchSurveyService";
+    private static final String SURVEY_URL           = "https://firebasestorage.googleapis.com/v0/b/caritas-50fab.appspot.com/o/current_survey%2Fsurvey.json?alt=media";
+    public  static final String BROADCAST_SURVEY     = "com.kisita.caritas.action.BROADCAST_SURVEY";
+    public  static final String CURRENT_SURVEY       = "com.kisita.caritas.action.CURRENT_SURVEY";
+
+
+    @Override
+    public boolean onStartJob(JobParameters params) {
+        Log.d(TAG,"Starting Job");
+
+        try {
+            new DownloadFilesTask().execute(new URL(SURVEY_URL));
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+    public boolean onStopJob(JobParameters params) {
+        Log.d(TAG,"Ending Job");
+        return false;
+    }
+
+    private class DownloadFilesTask extends AsyncTask<URL, Integer, String> {
+        protected String doInBackground(URL... urls) {
+
+            StringBuilder surveyJson = new StringBuilder();
+
+            try {
+                InputStream input = new URL(SURVEY_URL).openStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    //Log.d(TAG,"New line  : "+line);
+                    surveyJson.append(line);
+                }
+            }catch(MalformedURLException e){
+                Log.e(TAG,"Malformed URL");
+            }catch(IOException e){
+                Log.e(TAG,"IO Exception");
+            }
+
+            return surveyJson.toString();
+        }
+
+        protected void onProgressUpdate(Integer... progress) {
+            Log.d(TAG,"Progress is : " + progress );
+        }
+
+        protected void onPostExecute(String result) {
+            Log.d(TAG,"Post execution is : " + result );
+
+            //Save the survey in app directory for the next start
+            saveSurveyInFile(result);
+
+            Intent localIntent =
+                    new Intent(BROADCAST_SURVEY)
+                            // Puts the status into the Intent
+                            .putExtra(CURRENT_SURVEY,result);
+
+            sendBroadcast(localIntent);
+        }
+    }
+
+    private void saveSurveyInFile(String result) {
+        String filename = "survey.json";
+        File file = new File(getFilesDir(), filename);
+
+        try{
+            FileWriter writer = new FileWriter(file);
+            writer.append(result);
+            writer.flush();
+            writer.close();
+
+        }catch (Exception e){
+            e.printStackTrace();
+
+        }
+
     }
 }
