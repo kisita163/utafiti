@@ -7,10 +7,13 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 /**
  * Created by HuguesKi on 01-12-17.
@@ -25,22 +28,20 @@ public class PlaceholderFragment extends Fragment {
      * The fragment argument representing the section number for this
      * fragment.
      */
-    private static final String ARG_SECTION_QUESTIONS = "section_questions";
+    private static final String ARG_INDEX    = "index";
 
     public PlaceholderFragment() {
     }
 
     /**
      * Returns a new instance of this fragment for the given section
-     * number.
-     * @param sectionQuestions
      */
-    public static PlaceholderFragment newInstance(Section sectionQuestions) {
-        PlaceholderFragment fragment = new PlaceholderFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(ARG_SECTION_QUESTIONS, sectionQuestions);
-        fragment.setArguments(args);
-        return fragment;
+    public static PlaceholderFragment newInstance(int index) {
+            PlaceholderFragment fragment = new PlaceholderFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_INDEX, index);
+            fragment.setArguments(args);
+            return fragment;
     }
 
     @Override
@@ -50,7 +51,8 @@ public class PlaceholderFragment extends Fragment {
                 .getSharedPreferences(getResources()
                         .getString(R.string.caritas_keys), Context.MODE_PRIVATE);
 
-        Section sectionQuestions = (Section) getArguments().getSerializable(ARG_SECTION_QUESTIONS);
+        int index = getArguments().getInt(ARG_INDEX);
+        Section sectionQuestions = ((MainActivity)getActivity()).getSections().get(index);
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         RecyclerView recList = rootView.findViewById(R.id.cardList);
@@ -66,7 +68,7 @@ public class PlaceholderFragment extends Fragment {
         QuestionAdapter adapter = new QuestionAdapter(getContext(),sectionQuestions.getQuestions());
         recList.setAdapter(adapter);
 
-        //printQuestions(sectionQuestions.getQuestions());
+        printQuestions(sectionQuestions.getQuestions());
 
         TextView textView =  rootView.findViewById(R.id.section_label);
         textView.setText(sharedPref.getString(getResources().getString(R.string.survey_title_key),""));
@@ -74,9 +76,9 @@ public class PlaceholderFragment extends Fragment {
         return rootView;
     }
 
-    /*private void printQuestions(ArrayList<Question> questions){
+    private void printQuestions(ArrayList<Question> questions){
         for(Question q : questions){
-            //Log.i(TAG,q.getQuestion());
+            Log.d(TAG,q.getQuestion());
         }
-    }*/
+    }
 }

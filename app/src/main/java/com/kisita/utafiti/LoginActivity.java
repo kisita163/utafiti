@@ -28,11 +28,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.FirebaseDatabase;
-
-import static com.kisita.utafiti.CurrentSurveyService.BROADCAST_SURVEY;
-import static com.kisita.utafiti.CurrentSurveyService.CURRENT_SURVEY;
-import static com.kisita.utafiti.CurrentSurveyService.startActionFetchSurvey;
 
 /**
  * A login screen that offers login via email/password.
@@ -95,24 +90,6 @@ public class LoginActivity extends AppCompatActivity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-
-        registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                //Log.i(TAG,intent.getStringExtra("com.kisita.caritas.action.CURRENT_SURVEY"));
-                unregisterReceiver(this);
-                String survey = intent.getStringExtra(CURRENT_SURVEY);
-                // Go to MainActivity
-                showProgress(false);
-                Intent i = new Intent(LoginActivity.this,MainActivity.class);
-                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                i.putExtra(CURRENT_SURVEY,survey);
-                //Log.d(TAG, "User signed in");
-                startActivity(i);
-                finish();
-            }
-        }, new IntentFilter(BROADCAST_SURVEY));
-
     }
 
     /**
@@ -189,8 +166,13 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void onAuthSuccess() {
-
-        startActionFetchSurvey(this);
+        // Go to MainActivity
+        showProgress(false);
+        Intent i = new Intent(LoginActivity.this,MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        //Log.d(TAG, "User signed in");
+        startActivity(i);
+        finish();
     }
 
     private boolean isEmailValid(String email) {

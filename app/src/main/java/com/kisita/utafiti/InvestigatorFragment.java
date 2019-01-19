@@ -1,7 +1,10 @@
 package com.kisita.utafiti;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.location.Address;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -12,22 +15,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
-import java.io.Serializable;
+import com.google.firebase.auth.FirebaseAuth;
+import com.kisita.utafiti.interfaces.OnUtafitiEventReceived;
+import com.kisita.utafiti.services.UtafitiReceiver;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 import java.util.TimeZone;
 
+import static com.kisita.utafiti.services.LocationService.BROADCAST_LOCATION;
+import static com.kisita.utafiti.services.LocationService.startActionGetCity;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link OnInvestigatorInteractionListener} interface
- * to handle interaction events.
- * Use the {@link InvestigatorFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class InvestigatorFragment extends Fragment {
+
+public class InvestigatorFragment extends Fragment implements OnUtafitiEventReceived {
 
     /* UI references */
 
@@ -35,21 +37,17 @@ public class InvestigatorFragment extends Fragment {
 
     private EditText mStartTime;
 
-    private EditText mInvestigator;
-
-    private EditText mLocation;
-
-    private static final String ARG_SECTION = "section";
-
-    private static final String TAG         = "InvestigatorFragment";
-
-    private OnInvestigatorInteractionListener mListener;
+    private static final String TAG  = "InvestigatorFragment";
 
     private String date;
 
-    private String localAddress;
-
     private String start;
+
+    private Address mAddress;
+
+    private EditText mLocation;
+
+    private UtafitiReceiver mReceiver;
 
     public InvestigatorFragment() {
         // Required empty public constructor
@@ -61,12 +59,8 @@ public class InvestigatorFragment extends Fragment {
      *
      * @return A new instance of fragment InvestigatorFragment.
      */
-    public static InvestigatorFragment newInstance(Section sec) {
-        InvestigatorFragment fragment = new InvestigatorFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(ARG_SECTION,(Serializable) sec);
-        fragment.setArguments(args);
-        return fragment;
+    public static InvestigatorFragment newInstance() {
+        return new InvestigatorFragment();
     }
 
     @Override
@@ -74,51 +68,50 @@ public class InvestigatorFragment extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        Log.i(TAG,"onCreateView  ");
-        final Section section = (Section) getArguments().getSerializable(ARG_SECTION);
+        Log.d(TAG,"onCreateView  ");
+        final MainActivity activity = (MainActivity) getActivity();
+
         View v = inflater.inflate(R.layout.fragment_investigator, container, false);
 
         mDate         = v.findViewById(R.id.now);
-        mInvestigator = v.findViewById(R.id.investigator);
+        EditText mInvestigator = v.findViewById(R.id.investigator);
         mStartTime    = v.findViewById(R.id.start_time);
-        mLocation     = v.findViewById(R.id.location);
+        mLocation = v.findViewById(R.id.location);
 
         SharedPreferences sharedPref = getActivity()
                 .getSharedPreferences(getResources()
                         .getString(R.string.caritas_keys), Context.MODE_PRIVATE);
 
-        date         = sharedPref.getString(getResources().getString(R.string.start_date_key),"");
-        start        = sharedPref.getString(getResources().getString(R.string.start_time_key),"");
-        localAddress = sharedPref.getString(getResources().getString(R.string.address_key),"null");
+        date  = getToday(true);
+        start = sharedPref.getString(getResources().getString(R.string.start_time_key),"");
 
-        //Log.i(TAG,"" + date + " " + start);
-
-        mLocation.setText(localAddress);
+        if (mAddress != null)
+            mLocation.setText(mAddress.getCountryName());
+        else
+            mLocation.setText(getString(R.string.undefined));
         mLocation.setEnabled(false);
-        section.setLocation(localAddress);
 
         mDate.setText(date); // get the date
         mDate.setEnabled(false);
-        section.setDate(date);
+        activity.getSections().get(0).setDate(date);
 
 
-        section.setStart(start);
-        Log.i(TAG,"Section Start time is  : " + section.getStart());
-        //Log.i(TAG,"Start time is  : " + start);
+        activity.getSections().get(0).setStart(start);
+        Log.d(TAG,"Section Start time is  : " +  activity.getSections().get(0).getStart());
+
         mStartTime.setText(start);
         mStartTime.setEnabled(false);
 
-        String investigator = sharedPref.getString(getString(R.string.investigator),"");
+        String investigator = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
+
         mInvestigator.setText(investigator);
-        //TODO get investigator name fro firebase
 
-        section.setInvestigator(investigator);
-
-        final SharedPreferences.Editor editor = sharedPref.edit();
+        activity.getSections().get(0).setInvestigator(investigator);
 
         mInvestigator.addTextChangedListener(new TextWatcher() {
             @Override
@@ -128,9 +121,7 @@ public class InvestigatorFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                section.setInvestigator(charSequence.toString());
-                editor.putString(getString(R.string.investigator), charSequence.toString());
-                editor.apply();
+                activity.getSections().get(0).setInvestigator(charSequence.toString());
             }
 
             @Override
@@ -139,46 +130,17 @@ public class InvestigatorFragment extends Fragment {
             }
         });
 
+        // get current city
+        startActionGetCity(getContext());
+
+         mReceiver = new UtafitiReceiver(this);
+
+        getActivity().registerReceiver(mReceiver, new IntentFilter(BROADCAST_LOCATION));
+
         return v;
     }
 
-    public void onButtonPressed() {
-        if (mListener != null) {
-            mListener.onInvestigatorInteraction();
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnInvestigatorInteractionListener) {
-            mListener = (OnInvestigatorInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnInvestigatorInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnInvestigatorInteractionListener {
-        void onInvestigatorInteraction();
-    }
-
+    @SuppressLint("SimpleDateFormat")
     public static String getToday(boolean date){
         Date presentTime_Date = Calendar.getInstance().getTime();
 
@@ -202,4 +164,21 @@ public class InvestigatorFragment extends Fragment {
         mDate.setText(date);
     }
 
+    @Override
+    public void onDestroyView() {
+        getActivity().unregisterReceiver(mReceiver);
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onSurveyReceived() {
+
+    }
+
+    @Override
+    public void onLocalisationReceived(Address address) {
+        mAddress = address;
+        ((MainActivity)getActivity()).getSections().get(0).setAddress(mAddress);
+        mLocation.setText(mAddress.getCountryName());
+    }
 }

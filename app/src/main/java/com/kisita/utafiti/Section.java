@@ -1,5 +1,7 @@
 package com.kisita.utafiti;
 
+import android.location.Address;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -17,7 +19,7 @@ public class Section implements Serializable{
 
     private String start        = "";
 
-    private String location     = "";
+    private Address address;
 
 
     private ArrayList<Question> questions = new ArrayList<>();
@@ -62,11 +64,11 @@ public class Section implements Serializable{
         this.start = start;
     }
 
-    public String getLocation() {
-        return location;
+    public Address getAddress() {
+        return address;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setAddress(Address address) {
+        this.address = address;
     }
 }

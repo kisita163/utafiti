@@ -29,4 +29,8 @@
     <string name="address_key">address_key</string>
     <string name="press_here_to_choice">Appuyez ici pour choisir</string>
     <string name="survey_title_key">survey_title_key</string>
+    <string name="msg_subscribed">Suscribed to survey  changes</string>
+    <string name="msg_subscribe_failed">Subscription to survey topic failed</string>
+    <string name="undefined">Non défini</string>
+    <string name="survey_updated">Questionnaire mis à jour</string>
 </resources>

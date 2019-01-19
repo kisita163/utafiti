@@ -1,8 +1,6 @@
 package com.kisita.utafiti;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -19,37 +17,36 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
-
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.kisita.utafiti.interfaces.OnUtafitiEventReceived;
+import com.kisita.utafiti.services.UtafitiReceiver;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-import static com.kisita.utafiti.CurrentSurveyService.CURRENT_SURVEY;
 import static com.kisita.utafiti.InvestigatorFragment.getToday;
-import static com.kisita.utafiti.services.LocationService.BROADCAST_LOCATION;
-import static com.kisita.utafiti.services.LocationService.CURRENT_ADDRESS;
+import static com.kisita.utafiti.services.FetchSurveyService.BROADCAST_SURVEY;
 import static com.kisita.utafiti.services.LocationService.startActionGetCity;
 
-public class MainActivity extends AppCompatActivity implements PublishFragment.OnPublishInteractionListener, BottomNavigationView.OnNavigationItemSelectedListener, InvestigatorFragment.OnInvestigatorInteractionListener {
 
-    private final static String TAG      = "MainActivity";
+public class MainActivity extends AppCompatActivity implements PublishFragment.OnPublishInteractionListener, BottomNavigationView.OnNavigationItemSelectedListener, OnUtafitiEventReceived, Serializable {
 
-    private Address mAddress;
-
-    private final static String SECTIONS = "sections";
+    private final static String TAG                  = "MainActivity";
+    private final static String SECTIONS             = "sections";
+    private String mSurveyTitle                      = "";
     private static final int REQUEST_COARSE_LOCATION = 100;
+    private UtafitiReceiver mSurveyReceiver;
 
-    private String mCurrentSurvey        = "";
-    private String mSurveyTitle          = "";
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -77,18 +74,10 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // Enabling disk persistence
-        try {
-            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
 
-        mCurrentSurvey = getIntent().getExtras().getString(CURRENT_SURVEY);
-        //
         requestPermissionsForLocalisation();
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = findViewById(R.id.container);
         //
         if(savedInstanceState != null){
             mSections = (ArrayList<Section>) savedInstanceState.getSerializable(SECTIONS);
@@ -96,61 +85,35 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
             populateSections();
         }
         // Create the adapter that will return a fragment for each section of the survey
-        mSectionPagerAdapter = new SectionPagerAdapter(getSupportFragmentManager(), mSections);
+        mSectionPagerAdapter = new SectionPagerAdapter(this,mSections);
         mViewPager.setAdapter(mSectionPagerAdapter);
-        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
+        BottomNavigationView navigation = findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(this);
 
-        setStartDateTime();
+        mSurveyReceiver = new UtafitiReceiver(this);
 
-        registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                unregisterReceiver(this);
-                mAddress    = intent.getParcelableExtra(CURRENT_ADDRESS);
-                setLocalAddress(mAddress.getCountryName());
-                mSectionPagerAdapter.notifyDataSetChanged();
-                //printAddress(address,TAG);
-            }
-        }, new IntentFilter(BROADCAST_LOCATION));
-    }
-
-    private void setLocalAddress(String address){
-        SharedPreferences sharedPref = getSharedPreferences(getResources()
-                .getString(R.string.caritas_keys), Context.MODE_PRIVATE);
-
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(getString(R.string.address_key), address);
-        editor.apply();
-    }
-
-    private void setStartDateTime() {
-        SharedPreferences sharedPref = getSharedPreferences(getResources()
-                        .getString(R.string.caritas_keys), Context.MODE_PRIVATE);
-        String date = getToday(true);
-        String time = getToday(false);
-
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(getString(R.string.start_date_key), date);
-        editor.putString(getString(R.string.start_time_key), time);
-        editor.apply();
+        registerReceiver(mSurveyReceiver, new IntentFilter(BROADCAST_SURVEY));
+        setStartTime();
     }
 
     // Create array of sections
+
     private void populateSections() {
-        JSONArray jsonSurvey = null;
-        JSONArray jsonQuestions = null;
-        JSONObject section;
-        JSONObject question;
-        JSONArray  values   = null;
-        JSONArray  inChoices   = null;
-        JSONObject inValues   = null;
+        JSONArray jsonSurvey   ;
+        JSONArray jsonQuestions;
+        JSONObject section     ;
+        JSONObject question    ;
+        JSONArray  values      ;
+        JSONArray  inChoices   ;
+        JSONObject inValues    ;
         Section sec;
         //
         try {
-            JSONObject surveyParser = new JSONObject(mCurrentSurvey);
+            Utafiti application = (Utafiti) getApplication();
 
-            setSurveyPreference(R.string.survey_title_key,surveyParser.getString("name"));
+            JSONObject surveyParser = new JSONObject(application.getCurrentSurvey());
+
+            setSurveyPreference(surveyParser.getString("name"));
 
             // First section
             Section first = new Section(mSurveyTitle);
@@ -165,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
 
                 jsonQuestions = section.getJSONArray("questions");
 
-                Question  q = null;
+                Question  q;
                 for(int k = 0 ; k < jsonQuestions.length() ; k++){
                     question = jsonQuestions.getJSONObject(k);
                     // Get Question object
@@ -198,7 +161,6 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
                             choices.add(inChoices.get(v).toString());
                         }
                         //Log.i(TAG,"value "+ j +" : "+ values.get(j));
-                        //q.addChoice(values.get(j-1).toString());
                         q.addChoice(choices);
                     }
 
@@ -207,30 +169,44 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
                 mSections.add(sec);
             }
         }catch (JSONException e){
-            //TODO Exceptions handling
+            // If survey.json is not valid, the first section need to be populated
+            Section first = new Section(mSurveyTitle);
+            mSections.add(first);
+            // Start FetchSurveyService
             e.printStackTrace();
         }
         //printSections();
     }
 
-    private void setSurveyPreference(int keyId,String name) {
+    private void setStartTime() {
+        Log.i(TAG,"setStartDateTime");
+        SharedPreferences sharedPref = getSharedPreferences(getResources()
+                .getString(R.string.caritas_keys), Context.MODE_PRIVATE);
+        String time = getToday(false);
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(getString(R.string.start_time_key), time);
+        editor.apply();
+    }
+
+    private void setSurveyPreference(String name) {
 
         SharedPreferences sharedPref = getSharedPreferences(getResources()
                 .getString(R.string.caritas_keys), Context.MODE_PRIVATE);
 
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(getString(keyId), name);
+        editor.putString(getString(R.string.survey_title_key), name);
         editor.apply();
 
     }
 
     /*public void printSections(){
         for(Section s : mSections){
-            //Log.i(TAG,s.getName());
+            Log.d(TAG,s.getName());
             for(Question q : s.getQuestions()){
-                //Log.i(TAG,q.getQuestion());
+                Log.d(TAG,q.getQuestion());
                 for (ArrayList c : q.getChoices()){
-                    //Log.i(TAG,c);
+                    //Log.d(TAG,c);
                 }
             }
         }
@@ -239,10 +215,10 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
 
     public void printFinalSections(){
         for(Section s : mSections){
-            //Log.i(TAG,s.getName());
+            Log.d(TAG,s.getName());
             for(Question q : s.getQuestions()){
-                //Log.i(TAG,q.getQuestion());
-                //Log.i(TAG,"-->" + q.getChoice());
+                Log.d(TAG,q.getQuestion());
+                Log.d(TAG,"-->" + q.getChoice());
             }
         }
     }*/
@@ -269,11 +245,22 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
                 childUpdates.put(getUid() + "/" + key + "/section_"+j+"/endTime",endTime);
                 childUpdates.put(getUid() + "/" + key + "/section_"+j+"/date",s.getDate());
                 childUpdates.put(getUid() + "/" + key + "/section_"+j+"/investigator",s.getInvestigator());
-                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/country",mAddress.getCountryName());
-                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/city",mAddress.getAdminArea());
-                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/postal_code",mAddress.getPostalCode());
-                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/latitude",mAddress.getLatitude());
-                childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/longitude",mAddress.getLongitude());
+
+                if ( mSections.get(0).getAddress() == null ){
+
+                    childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/country","Unknown");
+                    childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/city","Unknown");
+                    childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/postal_code","9999");
+                    childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/latitude","0.0000000");
+                    childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/longitude","0.0000000");
+
+                }else{
+                    childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/country",mSections.get(0).getAddress().getCountryName());
+                    childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/city",mSections.get(0).getAddress().getAdminArea());
+                    childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/postal_code",mSections.get(0).getAddress().getPostalCode());
+                    childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/latitude",mSections.get(0).getAddress().getLatitude());
+                    childUpdates.put(getUid() + "/" + key + "/section_"+j+"/address/longitude",mSections.get(0).getAddress().getLongitude());
+                }
             }
             childUpdates.put(getUid() + "/" + key + "/section_"+j+"/name",s.getName());
             for(Question q : s.getQuestions()){
@@ -286,16 +273,13 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
             }
             j++;
         }
-        setStartDateTime();
         getDb("survey").updateChildren(childUpdates).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                //TODO Transactions are not persisted across app restarts
                 Toast.makeText(MainActivity.this, R.string.survey_failed,
                         Toast.LENGTH_LONG).show();
                 ((PublishFragment)publish).showProgress(false);
                 //Log.i(TAG,"Transactions are not persisted across app restarts");
-
             }
         });
 
@@ -303,6 +287,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                setStartTime();
                 mViewPager.setCurrentItem(0);
                 clearSurveyAnswers();
                 ((PublishFragment)publish).showProgress(false);
@@ -317,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
     }
 
     public String getUid() {
-        return FirebaseAuth.getInstance().getCurrentUser().getUid();
+        return Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
     }
 
     @Override
@@ -345,11 +330,6 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         return false;
     }
 
-    @Override
-    public void onInvestigatorInteraction() {
-
-    }
-
     public void switchRight(){
         int i = mViewPager.getCurrentItem(); // i give the section
 
@@ -363,15 +343,13 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
             for(Question q  : mSections.get(index).getQuestions()){
                 q.setChoice("");
                 q.setPos(0);
-                //TODO looks like notifyDataSetChanged doesn't work
-                //Log.i(TAG,"Question : "+q.getQuestion()+" - choice is  : " + q.getChoice() + " ****** " + q.getPos());
             }
         }
         mSectionPagerAdapter.notifyDataSetChanged();
     }
     public boolean checkRequiredFields(){
         for(int index  = 0 ; index < mSections.size() ; index++ ){
-           if(checkRequiredFieldsInSection(index) == false){
+           if(!checkRequiredFieldsInSection(index)){
                return false;
            }
         }
@@ -381,7 +359,11 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
     public boolean checkRequiredFieldsInSection(int index){
         //Log.i(TAG,"index is  : "+index + " " + (mSections.size() + 1));
         if(index == 0){
-            //Log.i(TAG,"investigator is  : "+mSections.get(index).getInvestigator());
+            Log.i(TAG,"Date is  : "+mSections.get(index).getDate());
+            Log.i(TAG,"Start is  : "+mSections.get(index).getStart());
+            Log.i(TAG,"Location is  : "+mSections.get(index).getAddress());
+            Log.i(TAG,"investigator is  : "+mSections.get(index).getInvestigator());
+
             if(mSections.get(index).getInvestigator().equalsIgnoreCase("")){
                 Toast.makeText(MainActivity.this, R.string.mandatory_fields,
                         Toast.LENGTH_LONG).show();
@@ -413,33 +395,53 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         super.onSaveInstanceState(savedInstanceState);
     }
 
+    @Override
+    protected void onStop() {
+        unregisterReceiver(mSurveyReceiver);
+        super.onStop();
+    }
+
+    @Override
+    public void onSurveyReceived() {
+        mSections.clear();
+        populateSections();
+        mSectionPagerAdapter.notifyDataSetChanged();
+
+        setStartTime();
+        mViewPager.setCurrentItem(0);
+        Toast.makeText(MainActivity.this, R.string.survey_updated,
+                Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onLocalisationReceived(Address address) {
+
+    }
+
+    public ArrayList<Section> getSections() {
+        return mSections;
+    }
+
     private void requestPermissionsForLocalisation(){
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
                     REQUEST_COARSE_LOCATION);
-        }else{
-            // get current city
-            startActionGetCity(this);
         }
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_COARSE_LOCATION: {
+                Log.d(TAG,"Permission granted...");
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // get current city
+                    // get current address
                     startActionGetCity(this);
-
-                } else {
-                    //TODO
                 }
             }
         }

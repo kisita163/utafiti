@@ -2,6 +2,7 @@ package com.kisita.utafiti.services;
 
 import com.firebase.jobdispatcher.JobParameters;
 import com.firebase.jobdispatcher.JobService;
+import com.kisita.utafiti.Utafiti;
 
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -75,7 +76,10 @@ public class FetchSurveyService extends JobService {
 
             //Save the survey in app directory for the next start
             saveSurveyInFile(result);
-
+            // Update Survey App field
+            Utafiti application = (Utafiti) getApplication();
+            application.setCurrentSurvey(result);
+            // Broadcast survey
             Intent localIntent =
                     new Intent(BROADCAST_SURVEY)
                             // Puts the status into the Intent

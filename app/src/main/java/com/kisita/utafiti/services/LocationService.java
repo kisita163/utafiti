@@ -21,7 +21,6 @@ import java.util.Locale;
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
  * <p>
- * TODO: Customize class - update intent actions, extra parameters and static
  * helper methods.
  */
 public class LocationService extends IntentService implements OnSuccessListener {
@@ -45,7 +44,7 @@ public class LocationService extends IntentService implements OnSuccessListener 
      *
      * @see IntentService
      */
-    // TODO: Customize helper method
+
     public static void startActionGetCity(Context context) {
         Intent intent = new Intent(context, LocationService.class);
         intent.setAction(ACTION_GET_CITY);
@@ -122,8 +121,7 @@ public class LocationService extends IntentService implements OnSuccessListener 
 
     @Override
     public void onSuccess(Object location) {
-
-        handleActionGetCity((Location) location);
+        if (location != null) handleActionGetCity((Location) location);
     }
 
     public static void printAddress(Address address , String tag){

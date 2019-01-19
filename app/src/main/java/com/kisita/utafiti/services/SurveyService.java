@@ -1,5 +1,6 @@
 package com.kisita.utafiti.services;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -10,14 +11,12 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.kisita.utafiti.CurrentSurveyService.startActionFetchSurvey;
 import static com.kisita.utafiti.MainActivity.getDb;
 
 public class SurveyService extends FirebaseMessagingService {
@@ -54,18 +53,21 @@ public class SurveyService extends FirebaseMessagingService {
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Log.d(TAG, "From: " + remoteMessage.getFrom());
 
-        if(remoteMessage.getFrom().contains("/topics/survey")) {
-            // Check if message contains a data payload.
-            if (remoteMessage.getData().size() > 0) {
-                Log.d(TAG, "Message data payload: " + remoteMessage.getData() + "(" + remoteMessage.getData().size() + ")");
-                // Schedule a job for fetching survey data
-                scheduleJob();
-            }
-        }
+        if (remoteMessage.getFrom() != null) {
 
-        // Check if message contains a notification payload.
-        if (remoteMessage.getNotification() != null) {
-            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
+            if (remoteMessage.getFrom().contains("/topics/survey")) {
+                // Check if message contains a data payload.
+                if (remoteMessage.getData().size() > 0) {
+                    Log.d(TAG, "Message data payload: " + remoteMessage.getData() + "(" + remoteMessage.getData().size() + ")");
+                    // Schedule a job for fetching survey data
+                    scheduleJob(getApplicationContext());
+                }
+            }
+
+            // Check if message contains a notification payload.
+            if (remoteMessage.getNotification() != null) {
+                Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
+            }
         }
     }
     // [END receive_message]
@@ -81,12 +83,6 @@ public class SurveyService extends FirebaseMessagingService {
     @Override
     public void onNewToken(String token) {
         Log.d(TAG, "Refreshed token: " + token);
-        // Enabling disk persistence
-        try {
-            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
         // If you want to send messages to this application instance or
         // manage this apps subscriptions on the server side, send the
         // Instance ID token to your app server.
@@ -97,9 +93,9 @@ public class SurveyService extends FirebaseMessagingService {
     /**
      * Schedule a job using FirebaseJobDispatcher.
      */
-    private void scheduleJob() {
+    public static void scheduleJob(Context context) {
         // [START dispatch_job]
-        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
+        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
         Job myJob = dispatcher.newJobBuilder()
                 .setService(FetchSurveyService.class)
                 .setTag("Long running task")

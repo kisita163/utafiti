@@ -1,5 +1,8 @@
 package com.kisita.utafiti.interfaces;
 
-public interface OnSurveyReceived {
-    
+import android.location.Address;
+
+public interface OnUtafitiEventReceived {
+    void onSurveyReceived();
+    void onLocalisationReceived(Address address);
 }

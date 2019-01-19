@@ -1,7 +1,6 @@
 package com.kisita.utafiti;
 
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.util.Log;
 
@@ -21,9 +20,12 @@ public class SectionPagerAdapter extends FragmentPagerAdapter {
      */
     private ArrayList<Section> survey;
 
-    public SectionPagerAdapter(FragmentManager fm, ArrayList<Section> survey) {
-        super(fm);
-        this.survey = survey;
+    private MainActivity activity;
+
+    SectionPagerAdapter(MainActivity activity, ArrayList<Section> survey) {
+        super(activity.getSupportFragmentManager());
+        this.survey   = survey;
+        this.activity = activity;
     }
 
     @Override
@@ -32,16 +34,17 @@ public class SectionPagerAdapter extends FragmentPagerAdapter {
         // Return a PlaceholderFragment (defined as a static inner class below).
         Log.i(TAG,"position is  : " + position);
         if(position == 0 ){
-            return InvestigatorFragment.newInstance(survey.get(0));
+            return InvestigatorFragment.newInstance();
         }
         if(position == (survey.size())) {
             return PublishFragment.newInstance();
         }
-        return PlaceholderFragment.newInstance(survey.get(position));
+        return PlaceholderFragment.newInstance(position);
     }
 
     @Override
     public int getItemPosition(Object object) {
+        Log.d(TAG,"getItemPosition");
         return POSITION_NONE;
     }
 
