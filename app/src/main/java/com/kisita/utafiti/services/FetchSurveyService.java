@@ -21,7 +21,6 @@ import java.net.URL;
 public class FetchSurveyService extends JobService {
 
     private static final String TAG                  = "FetchSurveyService";
-    private static final String SURVEY_URL           = "https://firebasestorage.googleapis.com/v0/b/caritas-50fab.appspot.com/o/current_survey%2Fsurvey.json?alt=media";
     public  static final String BROADCAST_SURVEY     = "com.kisita.caritas.action.BROADCAST_SURVEY";
     public  static final String CURRENT_SURVEY       = "com.kisita.caritas.action.CURRENT_SURVEY";
 
@@ -31,7 +30,7 @@ public class FetchSurveyService extends JobService {
         Log.d(TAG,"Starting Job");
 
         try {
-            new DownloadFilesTask().execute(new URL(SURVEY_URL));
+            new DownloadFilesTask().execute(new URL(((Utafiti)getApplication()).getSurveyUrl()));
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
@@ -50,7 +49,7 @@ public class FetchSurveyService extends JobService {
             StringBuilder surveyJson = new StringBuilder();
 
             try {
-                InputStream input = new URL(SURVEY_URL).openStream();
+                InputStream input = urls[0].openStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(input));
                 String line;
 
@@ -68,7 +67,7 @@ public class FetchSurveyService extends JobService {
         }
 
         protected void onProgressUpdate(Integer... progress) {
-            Log.d(TAG,"Progress is : " + progress );
+
         }
 
         protected void onPostExecute(String result) {

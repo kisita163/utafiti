@@ -15,8 +15,38 @@ import static com.kisita.utafiti.services.SurveyService.scheduleJob;
 
 public class Utafiti extends Application {
 
+    private static final String SURVEY_URL           = "https://firebasestorage.googleapis.com/v0/b/caritas-50fab.appspot.com/o/current_survey%2Fsurvey.json?alt=media";
+    private static final String SURVEY_URL_TEST      = "https://firebasestorage.googleapis.com/v0/b/caritas-50fab.appspot.com/o/current_survey_test%2Fsurvey.json?alt=media";
     private static String TAG     = "Utafiti";
-    private String currentSurvey = "";
+    private String currentSurvey  = "";
+    private String dbName;
+
+    public String getDbName() {
+        return dbName;
+    }
+
+    public void setDbName(String dbName) {
+        this.dbName = dbName;
+    }
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    public void setTopicName(String topicName) {
+        this.topicName = topicName;
+    }
+
+    public String getSurveyUrl() {
+        return surveyUrl;
+    }
+
+    public void setSurveyUrl(String surveyUrl) {
+        this.surveyUrl = surveyUrl;
+    }
+
+    private String topicName;
+    private String surveyUrl;
 
     public String getCurrentSurvey() {
         return currentSurvey;
@@ -36,7 +66,17 @@ public class Utafiti extends Application {
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         // Subscription sur survey topic
-        FirebaseMessaging.getInstance().subscribeToTopic("survey")
+        if (BuildConfig.DEBUG) {
+            setSurveyUrl(SURVEY_URL_TEST);
+            setTopicName("surveyTest");
+            setDbName("surveyTest");
+        }else{
+            setSurveyUrl(SURVEY_URL);
+            setTopicName("survey");
+            setDbName("survey");
+        }
+
+        FirebaseMessaging.getInstance().subscribeToTopic(getTopicName())
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {

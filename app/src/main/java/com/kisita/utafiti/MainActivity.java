@@ -234,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
             ((PublishFragment)publish).showProgress(false);
             return;
         }
-        String key = getDb("survey").push().getKey();
+        String key = getDb(((Utafiti)getApplication()).getDbName()).push().getKey();
         Map<String, Object> childUpdates = new HashMap<>();
         int i = 1;
         int j = 1;
@@ -273,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
             }
             j++;
         }
-        getDb("survey").updateChildren(childUpdates).addOnFailureListener(new OnFailureListener() {
+        getDb(((Utafiti)getApplication()).getDbName()).updateChildren(childUpdates).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Toast.makeText(MainActivity.this, R.string.survey_failed,
