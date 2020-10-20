@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.kisita.utafiti"
     android:installLocation="auto"
-    android:versionCode="6"
-    android:versionName="2.1">
+    android:versionCode="7"
+    android:versionName="2.2">
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />

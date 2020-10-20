@@ -33,4 +33,6 @@
     <string name="msg_subscribe_failed">Subscription to survey topic failed</string>
     <string name="undefined">Non défini</string>
     <string name="survey_updated">Questionnaire mis à jour</string>
+    <string name="number_of_items">Quantité</string>
+    <string name="unit_price">Prix unité</string>
 </resources>

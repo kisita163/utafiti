@@ -47,5 +47,45 @@
 
         style="@style/simpleTextValue"
         />
+    <GridLayout
+        android:id="@+id/product"
+        android:layout_width="match_parent"
+        android:layout_margin="@dimen/pad_20dp"
+        android:layout_below="@id/question"
+        android:columnCount="2"
+        android:rowCount="4"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_column="0"
+            android:layout_row="0"
+            style="@style/simpleTextLabel"
+            android:text="@string/unit_price"
+            />
+        <TextView
+            android:layout_column="0"
+            android:layout_row="1"
+            style="@style/simpleTextLabel"
+            android:text="@string/number_of_items"
+            />
+
+        <EditText
+            android:id="@+id/unit_price"
+            android:layout_column="1"
+            android:layout_row="0"
+            android:layout_width="match_parent"
+            android:inputType="numberDecimal"
+            style="@style/simpleTextValue"
+            />
+
+        <EditText
+            android:id="@+id/number_of_items"
+            android:layout_column="1"
+            android:layout_row="1"
+            android:layout_width="match_parent"
+            android:inputType="number"
+            style="@style/simpleTextValue"
+            />
+    </GridLayout>
 
 </RelativeLayout>

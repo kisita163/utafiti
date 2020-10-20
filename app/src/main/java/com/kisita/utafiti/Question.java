@@ -16,7 +16,8 @@ public class Question implements Serializable {
         CHOICES,
         MULTIPLE_CHOICES,
         NUMERIC,
-        TEXT
+        TEXT,
+        STORE_PRODUCT
     }
     private boolean mandatory         = false;
     private String  question          = "";
@@ -75,6 +76,9 @@ public class Question implements Serializable {
                 break;
             case "choices":
                 this.mAnswerType = AnswerType.CHOICES;
+                break;
+            case "store_product":
+                this.mAnswerType = AnswerType.STORE_PRODUCT;
                 break;
             default:
                 this.mAnswerType = AnswerType.CHOICES;

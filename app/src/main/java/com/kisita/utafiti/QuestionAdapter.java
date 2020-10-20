@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.GridLayout;
 import android.widget.TextView;
 
 import com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner;
@@ -53,6 +54,7 @@ public class QuestionAdapter extends RecyclerView.Adapter< QuestionAdapter.ViewH
 
         if(d.getEntryType().equals(Question.AnswerType.CHOICES)) {
             holder.mTextInput.setVisibility(View.GONE);
+            holder.mProduct.setVisibility(View.GONE);
             holder.mValues.setVisibility(View.VISIBLE);
             //Spinner
             ArrayAdapter<String> adapter = new ArrayAdapter<>(mContext, android.R.layout.simple_dropdown_item_1line, d.getChoices().get(d.getChoicesSet()));
@@ -85,6 +87,7 @@ public class QuestionAdapter extends RecyclerView.Adapter< QuestionAdapter.ViewH
 
         if(d.getEntryType().equals(Question.AnswerType.TEXT)){
             holder.mValues.setVisibility(View.GONE);
+            holder.mProduct.setVisibility(View.GONE);
             holder.mTextInput.setVisibility(View.VISIBLE);
             holder.mTextInput.setInputType(InputType.TYPE_CLASS_TEXT);
             holder.mTextInput.setText(d.getChoice());
@@ -108,9 +111,10 @@ public class QuestionAdapter extends RecyclerView.Adapter< QuestionAdapter.ViewH
         }
 
         if(d.getEntryType().equals(Question.AnswerType.NUMERIC)){
+            holder.mProduct.setVisibility(View.GONE);
             holder.mValues.setVisibility(View.GONE);
             holder.mTextInput.setVisibility(View.VISIBLE);
-            holder.mTextInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+            holder.mTextInput.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
             holder.mTextInput.setText(d.getChoice());
             holder.mTextInput.addTextChangedListener(new TextWatcher() {
             @Override
@@ -129,6 +133,29 @@ public class QuestionAdapter extends RecyclerView.Adapter< QuestionAdapter.ViewH
 
             }
         });
+        }
+
+        if(d.getEntryType().equals(Question.AnswerType.STORE_PRODUCT)){
+            holder.mValues.setVisibility(View.GONE);
+            holder.mTextInput.setVisibility(View.GONE);
+            holder.mValues.setVisibility(View.GONE);
+            holder.mNumberOfItems.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                    //Log.i(TAG,"onTextChanged" + charSequence.toString());
+                    //d.setChoice(charSequence.toString());
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+
+                }
+            });
         }
 
         holder.mComment.addTextChangedListener(new TextWatcher() {
@@ -163,7 +190,9 @@ public class QuestionAdapter extends RecyclerView.Adapter< QuestionAdapter.ViewH
         public final EditText mTextInput;
         public final MaterialBetterSpinner mValues;
         public final EditText mComment;
-
+        public final EditText mNumberOfItems;
+        public final EditText mUnitPrice;
+        public final GridLayout mProduct;
 
         public ViewHolder(View view) {
             super(view);
@@ -173,6 +202,10 @@ public class QuestionAdapter extends RecyclerView.Adapter< QuestionAdapter.ViewH
             mValues = (MaterialBetterSpinner) view.findViewById(R.id.values);
             mTextInput = (EditText) view.findViewById(R.id.text_input);
             mComment   = (EditText) view.findViewById(R.id.text_comment);
+            mNumberOfItems  = (EditText) view.findViewById(R.id.number_of_items);
+            mUnitPrice = (EditText) view.findViewById(R.id.unit_price);
+            mProduct = view.findViewById(R.id.product);
+
         }
 
         @Override
