@@ -61,7 +61,9 @@ public class LoginActivity extends AppCompatActivity {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     // User is signed in
-                    //onAuthSuccess();
+                    if (BuildConfig.DEBUG) {
+                        onAuthSuccess();
+                    }
                 }
             }
         };
