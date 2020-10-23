@@ -11,10 +11,9 @@
         android:textAppearance="?attr/textAppearanceListItem"
         android:layout_width="match_parent"
         android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
         android:layout_height="wrap_content" />
 
-    <com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner
+    <!--<com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner
         android:id="@+id/values"
         android:layout_width="match_parent"
         android:layout_marginTop="20dp"
@@ -46,16 +45,16 @@
         android:hint="@string/comment"
 
         style="@style/simpleTextValue"
-        />
+        />-->
     <GridLayout
-        android:id="@+id/product"
+        android:id="@+id/answers"
         android:layout_width="match_parent"
         android:layout_margin="@dimen/pad_20dp"
         android:layout_below="@id/question"
         android:columnCount="2"
-        android:rowCount="4"
         android:layout_height="wrap_content">
 
+        <!--
         <TextView
             android:layout_column="0"
             android:layout_row="0"
@@ -85,7 +84,7 @@
             android:layout_width="match_parent"
             android:inputType="number"
             style="@style/simpleTextValue"
-            />
+            /> -->
     </GridLayout>
 
 </RelativeLayout>

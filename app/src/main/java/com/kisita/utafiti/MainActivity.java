@@ -27,6 +27,7 @@ import com.kisita.utafiti.services.UtafitiReceiver;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -82,7 +83,8 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         if(savedInstanceState != null){
             mSections = (ArrayList<Section>) savedInstanceState.getSerializable(SECTIONS);
         }else{
-            populateSections();
+            //populateSections();
+            populateSectionsNew();
         }
         // Create the adapter that will return a fragment for each section of the survey
         mSectionPagerAdapter = new SectionPagerAdapter(this,mSections);
@@ -96,16 +98,11 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         setStartTime();
     }
 
-    // Create array of sections
-
-    private void populateSections() {
+    private void populateSectionsNew() {
         JSONArray jsonSurvey   ;
         JSONArray jsonQuestions;
         JSONObject section     ;
         JSONObject question    ;
-        JSONArray  values      ;
-        JSONArray  inChoices   ;
-        JSONObject inValues    ;
         Section sec;
         //
         try {
@@ -128,42 +125,45 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
 
                 jsonQuestions = section.getJSONArray("questions");
 
-                Question  q;
+                QuestionNew  q;
                 for(int k = 0 ; k < jsonQuestions.length() ; k++){
                     question = jsonQuestions.getJSONObject(k);
                     // Get Question object
-                    q  = new Question(question.getString("text"));
-                    q.setEntryType(question.getString("answerType"));
-                    if(question.getString("mandatory").equalsIgnoreCase("1")){
-                        q.setMandatory(true);
-                    }
+                    q  = new QuestionNew("");
 
-                    values = question.getJSONArray("values");
+                    q.setQuestionId(question.getString("id"));
+                    q.setQuestionText(question.getString("question_text"));
+                    q.setMandatory(Boolean.parseBoolean(question.getString("mandatory")));
 
-                    if(question.has("dependsOn")){
-                        Log.i(TAG, "depends on ....."+ question.getString("dependsOn"));
-                        q.setDependsOn(question.getString("dependsOn"));
-                    }
+                    JSONArray jsonAnswers = question.getJSONArray("answers");
+                    ArrayList<Answer> answers = new ArrayList<>();
+                    for(int l = 0 ; l < jsonAnswers.length() ; l++){
+                        Answer answer = new Answer();
+                        JSONObject a = jsonAnswers.getJSONObject(l);
 
-                    if(question.has("influenceOn")){
-                        Log.i(TAG, "influence on ....."+ question.getString("influenceOn"));
-                        q.setInfluenceOn(question.getString("influenceOn"));
-                    }
+                        answer.setId(a.getString("id"));
+                        answer.setAnswerType(a.getString("type"));
+                        answer.setAnswerLabel(a.getString("label"));
 
-                    for(int j = 0; j < values.length() ; j++){
-                        Log.i(TAG,"values length is : "+ values.length());
+                        JSONArray c = a.getJSONArray("choices"); //Array of choices
                         ArrayList<String> choices = new ArrayList<>();
-                        //choices.add("");
-                        inValues  = values.getJSONObject(j);
-                        inChoices = inValues.getJSONArray("choices");
-                        for (int v = 0 ; v < inChoices.length() ; v++){
-                            Log.i(TAG,"Choice is : "+ inChoices.get(v).toString());
-                            choices.add(inChoices.get(v).toString());
+                        for(int m = 0 ; m < c.length() ; m++){
+                            String choice = c.getString(m);
+                            choices.add(choice);
+                            Log.i(TAG,choice);
                         }
-                        //Log.i(TAG,"value "+ j +" : "+ values.get(j));
-                        q.addChoice(choices);
+                        answer.setAnswerChoices(choices);
+                        answers.add(answer);
+                        Log.i(TAG,a.getString("id"));
+                        Log.i(TAG,a.getString("type"));
+                        Log.i(TAG,a.getString("label"));
                     }
 
+                    Log.i(TAG,question.getString("mandatory"));
+                    Log.i(TAG,question.getString("id"));
+                    Log.i(TAG,question.getString("question_text"));
+
+                    q.setAnswers(answers);
                     sec.addNewQuestion(q);
                 }
                 mSections.add(sec);
@@ -263,9 +263,11 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
                 }
             }
             childUpdates.put(getUid() + "/" + key + "/section_"+j+"/name",s.getName());
-            for(Question q : s.getQuestions()){
-                childUpdates.put(getUid() + "/" + key +  "/section_"+j+"/question"+ i +"/text" , q.getQuestion());
-                childUpdates.put(getUid() + "/" + key +  "/section_"+j+"/question"+ i +"/choice" , q.getChoice());
+            for(QuestionNew q : s.getQuestions()){
+                childUpdates.put(getUid() + "/" + key +  "/section_"+j+"/question"+ i +"/question" , q.getQuestionText());
+                for(Answer answer:q.getAnswers()) {
+                    childUpdates.put(getUid() + "/" + key + "/section_" + j + "/question" + i + "/responses/" + answer.getAnswerLabel(), answer.getChoice());
+                }
                 if(!q.getComment().equalsIgnoreCase("")){
                     childUpdates.put(getUid() + "/" + key +  "/section_"+j+"/question"+ i +"/comment" , q.getComment());
                 }
@@ -373,14 +375,18 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
         }
         if(index > 0 && index < mSections.size()){
             //Log.i(TAG,"Section size is  : "+mSections.size());
-            for(Question q  : mSections.get(index).getQuestions()){
+            for(QuestionNew q  : mSections.get(index).getQuestions()){
                 //Log.i(TAG,"Question : "+q.getQuestion()+" - choice is  : " + q.getChoice() + "***"+ q.getChoice().length());
-                if(q.getChoice().equalsIgnoreCase("") && q.isMandatory()){
-                    //Log.i(TAG,"Question : "+q.getQuestion()+" - choice is  : " + q.getChoice());
-                    Toast.makeText(MainActivity.this, R.string.mandatory_fields,
-                            Toast.LENGTH_LONG).show();
-                    mViewPager.setCurrentItem(index);
-                    return false;
+
+                if(q.isMandatory()) {
+                    for (int k = 0; k < q.getAnswers().size(); k++) {
+                        if(q.getAnswers().get(k).getChoice().isEmpty()){
+                            Toast.makeText(MainActivity.this, R.string.mandatory_fields,
+                                    Toast.LENGTH_LONG).show();
+                            mViewPager.setCurrentItem(index);
+                            return false;
+                        }
+                    }
                 }
             }
         }
@@ -404,7 +410,8 @@ public class MainActivity extends AppCompatActivity implements PublishFragment.O
     @Override
     public void onSurveyReceived() {
         mSections.clear();
-        populateSections();
+        //populateSections();
+        populateSectionsNew();
         mSectionPagerAdapter.notifyDataSetChanged();
 
         setStartTime();

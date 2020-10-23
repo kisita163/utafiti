@@ -22,12 +22,12 @@ public class Section implements Serializable{
     private Address address;
 
 
-    private ArrayList<Question> questions = new ArrayList<>();
+    private ArrayList<QuestionNew> questions = new ArrayList<>();
 
     public Section(String name){
         this.name = name;
     }
-    public void addNewQuestion(Question question){
+    public void addNewQuestion(QuestionNew question){
         if(question != null)
             this.questions.add(question);
     }
@@ -36,7 +36,7 @@ public class Section implements Serializable{
         return name;
     }
 
-    public ArrayList<Question> getQuestions() {
+    public ArrayList<QuestionNew> getQuestions() {
         return questions;
     }
 

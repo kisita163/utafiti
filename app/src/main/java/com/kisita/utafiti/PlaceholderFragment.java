@@ -76,7 +76,7 @@ public class PlaceholderFragment extends Fragment {
         return rootView;
     }
 
-    private void printQuestions(ArrayList<Question> questions){
+    private void printQuestions(ArrayList<QuestionNew> questions){
         for(Question q : questions){
             Log.d(TAG,q.getQuestion());
         }
